@@ -1,4 +1,4 @@
-import { Text, StyleSheet, TextStyle } from "react-native";
+import { Text, StyleSheet, TextStyle, StyleProp } from "react-native";
 import { colors, typography } from "../../constants/theme";
 
 type Variant = "hero" | "title" | "body" | "label" | "small" | "tiny";
@@ -7,7 +7,7 @@ type Props = {
   children: React.ReactNode;
   variant?: Variant;
   color?: string;
-  style?: TextStyle;
+  style?: StyleProp<TextStyle>;
   uppercase?: boolean;
 };
 
