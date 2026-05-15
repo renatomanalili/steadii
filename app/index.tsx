@@ -10,7 +10,6 @@ export default function Index() {
   }, []);
 
   async function checkOnboarding() {
-    await AsyncStorage.clear();
     try {
       const onboarded = await AsyncStorage.getItem(
         "@steadii/onboarded",
