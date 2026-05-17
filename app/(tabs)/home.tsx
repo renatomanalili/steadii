@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { router } from "expo-router";
+import { isAfter, parseISO } from "date-fns";
 import {
   View,
   ScrollView,
@@ -54,6 +56,16 @@ export default function Home() {
           getTodayReadings(period),
         ]);
       if (storedName) setName(storedName);
+
+      // check if goal is complete
+      if (activeGoal) {
+        const goalEndDate = parseISO(activeGoal.endDate);
+        if (isAfter(new Date(), goalEndDate)) {
+          router.push("/goal-complete");
+          return;
+        }
+      }
+
       setGoal(activeGoal);
       if (todayReadings.length > 0) {
         setSavedReading(todayReadings[0]);
@@ -197,6 +209,11 @@ export default function Home() {
           label={savedReading ? "Update reading" : "Save reading"}
           onPress={handleSave}
           loading={saving}
+        />
+        <Button
+          label="[DEV] Goal complete"
+          onPress={() => router.push("/goal-complete")}
+          variant="ghost"
         />
 
         {/* Tip of the Day */}
