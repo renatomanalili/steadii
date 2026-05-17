@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { View, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Home, Clock } from "lucide-react-native";
+import { Home, Clock, Settings } from "lucide-react-native";
 import { colors, spacing, radius } from "../../constants/theme";
 import { Typography } from "../../components/ui/Typography";
 
@@ -71,6 +71,27 @@ export default function TabLayout() {
               label="History"
               icon={
                 <Clock
+                  size={16}
+                  color={
+                    focused
+                      ? colors.textOnAccent
+                      : colors.textTertiary
+                  }
+                />
+              }
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          tabBarIcon: ({ focused }) => (
+            <TabItem
+              focused={focused}
+              label="Settings"
+              icon={
+                <Settings
                   size={16}
                   color={
                     focused
