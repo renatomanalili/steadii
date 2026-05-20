@@ -1,130 +1,115 @@
 import { Tabs } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Home, Clock, Settings } from "lucide-react-native";
 import { colors, spacing, radius } from "../../constants/theme";
 import { Typography } from "../../components/ui/Typography";
 
-type TabItemProps = {
-  focused: boolean;
-  label: string;
-  icon: React.ReactNode;
-};
+// Uncomment after: sudo chown -R $(whoami) node_modules/packages && npm install expo-blur --legacy-peer-deps
+// import { BlurView } from "expo-blur";
 
-function TabItem({ focused, label, icon }: TabItemProps) {
-  return (
-    <View style={[styles.tabItem, focused && styles.tabItemActive]}>
-      {icon}
-      <Typography
-        variant="tiny"
-        color={focused ? colors.textOnAccent : colors.textTertiary}
-        style={styles.tabLabel}
-      >
-        {label}
-      </Typography>
-    </View>
-  );
-}
+const TABS = [
+  {
+    name: "home",
+    label: "Home",
+    Icon: Home,
+  },
+  {
+    name: "history",
+    label: "History",
+    Icon: Clock,
+  },
+  {
+    name: "settings",
+    label: "Settings",
+    Icon: Settings,
+  },
+] as const;
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
 
   return (
     <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: [
-          styles.tabBar,
-          { bottom: insets.bottom + spacing.lg },
-        ],
-        tabBarShowLabel: false,
-        tabBarBackground: () => null,
-      }}
+      screenOptions={{ headerShown: false }}
+      tabBar={({ state, navigation }) => (
+        <View
+          style={[
+            styles.wrapper,
+            { bottom: insets.bottom + spacing.lg },
+          ]}
+        >
+          <View style={styles.pill}>
+            {/* Glass background — swap View for BlurView once expo-blur is installed */}
+            <View style={StyleSheet.absoluteFill}>
+              <View style={styles.glass} />
+            </View>
+
+            {TABS.map((tab, index) => {
+              const focused = state.index === index;
+              return (
+                <TouchableOpacity
+                  key={tab.name}
+                  style={[styles.tabItem, focused && styles.tabItemActive]}
+                  onPress={() => navigation.navigate(tab.name)}
+                  activeOpacity={0.8}
+                >
+                  <tab.Icon
+                    size={16}
+                    color={
+                      focused ? colors.textOnAccent : colors.textSecondary
+                    }
+                  />
+                  <Typography
+                    variant="tiny"
+                    color={
+                      focused ? colors.textOnAccent : colors.textSecondary
+                    }
+                    style={styles.label}
+                  >
+                    {tab.label}
+                  </Typography>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
     >
-      <Tabs.Screen
-        name="home"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabItem
-              focused={focused}
-              label="Home"
-              icon={
-                <Home
-                  size={16}
-                  color={
-                    focused
-                      ? colors.textOnAccent
-                      : colors.textTertiary
-                  }
-                />
-              }
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabItem
-              focused={focused}
-              label="History"
-              icon={
-                <Clock
-                  size={16}
-                  color={
-                    focused
-                      ? colors.textOnAccent
-                      : colors.textTertiary
-                  }
-                />
-              }
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          tabBarIcon: ({ focused }) => (
-            <TabItem
-              focused={focused}
-              label="Settings"
-              icon={
-                <Settings
-                  size={16}
-                  color={
-                    focused
-                      ? colors.textOnAccent
-                      : colors.textTertiary
-                  }
-                />
-              }
-            />
-          ),
-        }}
-      />
+      <Tabs.Screen name="home" />
+      <Tabs.Screen name="history" />
+      <Tabs.Screen name="settings" />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
+  wrapper: {
     position: "absolute",
-    left: spacing.xxl * 2,
-    right: spacing.xxl * 2,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  pill: {
+    flexDirection: "row",
+    alignItems: "center",
     height: 56,
     borderRadius: radius.full,
-    backgroundColor: colors.card,
-    borderTopWidth: 0,
-    borderWidth: 0.5,
-    borderColor: colors.borderDefault,
-    elevation: 0,
+    paddingHorizontal: spacing.sm,
+    overflow: "hidden",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.3,
-    shadowRadius: 16,
-    paddingBottom: 0,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
+  },
+  glass: {
+    flex: 1,
+    backgroundColor: "rgba(22, 28, 46, 0.85)",
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.08)",
+    borderTopColor: "rgba(255, 255, 255, 0.15)",
   },
   tabItem: {
     flexDirection: "row",
@@ -133,13 +118,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.lg,
     borderRadius: radius.full,
-    minWidth: 100,
-    justifyContent: "center",
   },
   tabItemActive: {
     backgroundColor: colors.accentPrimary,
   },
-  tabLabel: {
+  label: {
     fontWeight: "600",
     letterSpacing: 0.3,
   },

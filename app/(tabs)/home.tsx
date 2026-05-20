@@ -5,10 +5,12 @@ import {
   StyleSheet,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { format, parseISO, isAfter } from "date-fns";
+import * as Notifications from "expo-notifications";
+import { format } from "date-fns";
 import { Lightbulb } from "lucide-react-native";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
@@ -20,7 +22,7 @@ import { ClassificationBadge } from "../../components/log/ClassificationBadge";
 import { getTipOfTheDay } from "../../constants/tips";
 import { useReadings } from "../../hooks/useReadings";
 import { useGoal } from "../../hooks/useGoal";
-import { Goal } from "../../types";
+import { GoalBanner } from "../../components/home/GoalBanner";
 import { colors, spacing, radius } from "../../constants/theme";
 
 export default function Home() {
@@ -33,6 +35,7 @@ export default function Home() {
   const [bpm, setBpm] = useState<number | null>(null);
 
   const {
+    readings,
     saving,
     saveReading,
     refresh: refreshReadings,
@@ -69,6 +72,29 @@ export default function Home() {
 
   async function handleRefresh() {
     await Promise.all([refreshReadings(), refreshGoal()]);
+  }
+
+  async function handleTestNotification() {
+    const { status } = await Notifications.requestPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission required",
+        "Allow notifications in your device settings, then try again.",
+        [{ text: "OK" }],
+      );
+      return;
+    }
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "Morning check-in",
+        body: "Time to log your morning blood pressure reading.",
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 5,
+      },
+    });
+    Alert.alert("Scheduled", "Background the app — notification fires in 5 seconds.");
   }
 
   return (
@@ -109,7 +135,7 @@ export default function Home() {
         </View>
 
         {/* Goal Banner */}
-        {activeGoal && <GoalBanner goal={activeGoal} />}
+        {activeGoal && <GoalBanner goal={activeGoal} readings={readings} />}
 
         {/* AM/PM Toggle */}
         <View style={styles.toggleRow}>
@@ -204,6 +230,12 @@ export default function Home() {
           </Typography>
         </Card>
 
+        {/* DEV: test notification — remove before release */}
+        <Button
+          label="Test notification (5s)"
+          onPress={handleTestNotification}
+        />
+
         {/* Bottom padding for floating tab bar */}
         <View style={styles.bottomPadding} />
       </ScrollView>
@@ -211,62 +243,6 @@ export default function Home() {
   );
 }
 
-type GoalBannerProps = {
-  goal: Goal;
-};
-
-function GoalBanner({ goal }: GoalBannerProps) {
-  const { progress } = useGoal();
-
-  if (!progress) return null;
-
-  return (
-    <Card style={styles.goalCard}>
-      <View style={styles.goalRow}>
-        <View style={styles.goalLeft}>
-          <Typography
-            variant="tiny"
-            color={colors.textTertiary}
-            uppercase
-          >
-            Tracking program
-          </Typography>
-          <Typography variant="label">{goal.label}</Typography>
-        </View>
-        <View style={styles.goalRight}>
-          <Typography
-            variant="title"
-            color={colors.accentPrimary}
-            style={styles.dayCount}
-          >
-            Day {progress.daysPassed}
-          </Typography>
-          <Typography variant="tiny" color={colors.textTertiary}>
-            of {progress.totalDays}
-          </Typography>
-        </View>
-      </View>
-
-      <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${progress.percentComplete}%` },
-          ]}
-        />
-      </View>
-
-      <View style={styles.goalFooter}>
-        <Typography variant="tiny" color={colors.textTertiary}>
-          Started {format(parseISO(goal.startDate), "MMM d")}
-        </Typography>
-        <Typography variant="tiny" color={colors.textTertiary}>
-          {progress.percentComplete}% · {progress.daysLeft} days left
-        </Typography>
-      </View>
-    </Card>
-  );
-}
 
 const styles = StyleSheet.create({
   scroll: {
@@ -336,41 +312,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
   },
-  goalCard: {
-    gap: spacing.md,
-  },
-  goalRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  goalLeft: {
-    gap: spacing.xs,
-  },
-  goalRight: {
-    alignItems: "flex-end",
-    gap: spacing.xs,
-  },
-  dayCount: {
-    fontSize: 22,
-    fontWeight: "300",
-  },
-  progressTrack: {
-    height: 6,
-    backgroundColor: colors.card,
-    borderRadius: radius.full,
-    overflow: "hidden",
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: colors.accentPrimary,
-    borderRadius: radius.full,
-  },
-  goalFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  bottomPadding: {
+bottomPadding: {
     height: 100,
   },
 });

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -21,13 +21,26 @@ import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
 import { Card } from "../../components/ui/Card";
 import { useGoal } from "../../hooks/useGoal";
+import { useReadings } from "../../hooks/useReadings";
+import { useNotifications } from "../../hooks/useNotifications";
 import { colors, spacing, radius } from "../../constants/theme";
 
 export default function Settings() {
   const [name, setName] = useState("");
-  const [notificationsEnabled, setNotificationsEnabled] =
-    useState(false);
-  const { activeGoal, pastGoals, progress } = useGoal();
+  const { activeGoal, pastGoals } = useGoal();
+  const { readings } = useReadings();
+  const { enabled: notificationsEnabled, toggle: toggleNotifications } = useNotifications();
+
+  const loggedDays = useMemo(() => {
+    if (!activeGoal) return 0;
+    const startStr = activeGoal.startDate.slice(0, 10);
+    const uniqueDays = new Set(
+      readings
+        .filter((r) => r.loggedAt.slice(0, 10) >= startStr)
+        .map((r) => r.loggedAt.slice(0, 10)),
+    );
+    return uniqueDays.size;
+  }, [readings, activeGoal]);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,12 +50,8 @@ export default function Settings() {
 
   async function loadData() {
     try {
-      const [storedName, reminderTime] = await Promise.all([
-        SecureStore.getItemAsync("steadii_name"),
-        AsyncStorage.getItem("@steadii/reminder_time"),
-      ]);
+      const storedName = await SecureStore.getItemAsync("steadii_name");
       if (storedName) setName(storedName);
-      setNotificationsEnabled(!!reminderTime);
     } catch (error) {
       console.error(error);
     }
@@ -112,13 +121,12 @@ export default function Settings() {
                     <Typography variant="small">
                       {activeGoal.label}
                     </Typography>
-                    {progress && (
+                    {loggedDays > 0 && (
                       <Typography
                         variant="tiny"
                         color={colors.accentPrimary}
                       >
-                        Day {progress.daysPassed} of{" "}
-                        {activeGoal.durationDays}
+                        Day {loggedDays} of {activeGoal.durationDays}
                       </Typography>
                     )}
                   </View>
@@ -200,7 +208,7 @@ export default function Settings() {
               </View>
               <Switch
                 value={notificationsEnabled}
-                onValueChange={setNotificationsEnabled}
+                onValueChange={toggleNotifications}
                 trackColor={{
                   false: colors.card,
                   true: colors.accentPrimary,

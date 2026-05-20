@@ -7,9 +7,10 @@ import { colors, spacing } from "../../constants/theme";
 type Props = {
   weekLabel: string;
   readings: BPReading[];
+  onDeleteReading?: (id: number) => void;
 };
 
-export function WeekGroup({ weekLabel, readings }: Props) {
+export function WeekGroup({ weekLabel, readings, onDeleteReading }: Props) {
   const avgSystolic = Math.round(
     readings.reduce((sum, r) => sum + r.systolic, 0) /
       readings.length,
@@ -36,7 +37,7 @@ export function WeekGroup({ weekLabel, readings }: Props) {
 
       <View style={styles.readings}>
         {readings.map((reading) => (
-          <ReadingRow key={reading.id} reading={reading} />
+          <ReadingRow key={reading.id} reading={reading} onDelete={onDeleteReading} />
         ))}
       </View>
     </View>

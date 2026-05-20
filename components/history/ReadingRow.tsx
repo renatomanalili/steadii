@@ -1,4 +1,4 @@
-import { View, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Alert, StyleSheet } from "react-native";
 import { Typography } from "../ui/Typography";
 import { getBPClassification } from "../../utils/bpClassify";
 import {
@@ -10,23 +10,40 @@ import { colors, spacing, radius } from "../../constants/theme";
 
 type Props = {
   reading: BPReading;
+  onDelete?: (id: number) => void;
 };
 
-export function ReadingRow({ reading }: Props) {
+export function ReadingRow({ reading, onDelete }: Props) {
   const classification = getBPClassification(
     reading.systolic,
     reading.diastolic,
   );
 
+  function handleLongPress() {
+    if (!onDelete) return;
+    Alert.alert(
+      "Delete reading?",
+      `${reading.systolic}/${reading.diastolic} mmHg · ${formatReadingDate(reading.loggedAt)} ${formatReadingTime(reading.loggedAt)}`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => onDelete(reading.id),
+        },
+      ],
+    );
+  }
+
   return (
-    <View style={styles.container}>
+    <TouchableOpacity
+      style={styles.container}
+      onLongPress={handleLongPress}
+      delayLongPress={400}
+      activeOpacity={onDelete ? 0.7 : 1}
+    >
       <View style={styles.left}>
-        <View
-          style={[
-            styles.dot,
-            { backgroundColor: classification.color },
-          ]}
-        />
+        <View style={[styles.dot, { backgroundColor: classification.color }]} />
         <View style={styles.dateContainer}>
           <Typography variant="small">
             {formatReadingDate(reading.loggedAt)}
@@ -48,8 +65,7 @@ export function ReadingRow({ reading }: Props) {
         <Typography variant="body" style={styles.reading}>
           {reading.systolic}
           <Typography variant="small" color={colors.textTertiary}>
-            {" "}
-            / {reading.diastolic}
+            {" "}/ {reading.diastolic}
           </Typography>
         </Typography>
         <View style={styles.meta}>
@@ -64,16 +80,13 @@ export function ReadingRow({ reading }: Props) {
               { backgroundColor: `${classification.color}26` },
             ]}
           >
-            <Typography
-              variant="tiny"
-              style={{ color: classification.color }}
-            >
+            <Typography variant="tiny" style={{ color: classification.color }}>
               {classification.label}
             </Typography>
           </View>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

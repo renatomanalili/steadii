@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Minus, Plus } from "lucide-react-native";
 import { Typography } from "../ui/Typography";
@@ -20,19 +21,44 @@ export function StepperCard({
   min = 40,
   max = 250,
 }: Props) {
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const ticksRef = useRef(0);
+
+  function startRepeat(action: () => void) {
+    ticksRef.current = 0;
+    intervalRef.current = setInterval(() => {
+      action();
+      ticksRef.current += 1;
+      // Accelerate after 8 ticks — clear and restart at a faster rate
+      if (ticksRef.current === 8) {
+        clearInterval(intervalRef.current!);
+        intervalRef.current = setInterval(action, 60);
+      }
+    }, 150);
+  }
+
+  function stopRepeat() {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    ticksRef.current = 0;
+  }
+
   return (
     <View style={styles.card}>
       <TouchableOpacity
         style={styles.button}
         onPress={onIncrement}
+        onLongPress={() => startRepeat(onIncrement)}
+        onPressOut={stopRepeat}
+        delayLongPress={300}
         disabled={value >= max}
         activeOpacity={0.8}
       >
         <Plus
           size={24}
-          color={
-            value >= max ? colors.textTertiary : colors.textOnAccent
-          }
+          color={value >= max ? colors.textTertiary : colors.textOnAccent}
         />
       </TouchableOpacity>
 
@@ -40,11 +66,7 @@ export function StepperCard({
         <Typography variant="hero" style={styles.value}>
           {value}
         </Typography>
-        <Typography
-          variant="tiny"
-          color={colors.textSecondary}
-          uppercase
-        >
+        <Typography variant="tiny" color={colors.textSecondary} uppercase>
           {label}
         </Typography>
         <Typography variant="tiny" color={colors.textTertiary}>
@@ -55,14 +77,15 @@ export function StepperCard({
       <TouchableOpacity
         style={styles.button}
         onPress={onDecrement}
+        onLongPress={() => startRepeat(onDecrement)}
+        onPressOut={stopRepeat}
+        delayLongPress={300}
         disabled={value <= min}
         activeOpacity={0.8}
       >
         <Minus
           size={24}
-          color={
-            value <= min ? colors.textTertiary : colors.textOnAccent
-          }
+          color={value <= min ? colors.textTertiary : colors.textOnAccent}
         />
       </TouchableOpacity>
     </View>
