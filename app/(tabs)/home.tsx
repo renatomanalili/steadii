@@ -1,29 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
-import { router } from "expo-router";
-import { isAfter, parseISO } from "date-fns";
+import { useState, useCallback } from "react";
 import {
   View,
   ScrollView,
   StyleSheet,
   RefreshControl,
+  TouchableOpacity,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { format } from "date-fns";
+import { format, parseISO, isAfter } from "date-fns";
+import { Lightbulb } from "lucide-react-native";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
 import { StepperCard } from "../../components/log/StepperCard";
 import { BpmInput } from "../../components/log/BpmInput";
 import { ClassificationBadge } from "../../components/log/ClassificationBadge";
 import { getTipOfTheDay } from "../../constants/tips";
-import { insertReading, getTodayReadings } from "../../db/readings";
-import { getActiveGoal } from "../../db/goals";
-import { calculateGoalProgress } from "../../utils/dateHelpers";
-import { Goal, BPReading } from "../../types";
+import { useReadings } from "../../hooks/useReadings";
+import { useGoal } from "../../hooks/useGoal";
+import { Goal } from "../../types";
 import { colors, spacing, radius } from "../../constants/theme";
-import { Button } from "../../components/ui/Button";
-import { Card } from "../../components/ui/Card";
-import { Lightbulb } from "lucide-react-native";
 
 export default function Home() {
   const [name, setName] = useState("");
@@ -33,67 +31,44 @@ export default function Home() {
   const [systolic, setSystolic] = useState(120);
   const [diastolic, setDiastolic] = useState(80);
   const [bpm, setBpm] = useState<number | null>(null);
-  const [saving, setSaving] = useState(false);
-  const [savedReading, setSavedReading] = useState<BPReading | null>(
-    null,
-  );
-  const [goal, setGoal] = useState<Goal | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+
+  const {
+    saving,
+    saveReading,
+    refresh: refreshReadings,
+  } = useReadings();
+  const {
+    activeGoal,
+    isGoalComplete,
+    refresh: refreshGoal,
+  } = useGoal();
   const tip = getTipOfTheDay();
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, []),
+      loadName();
+      if (isGoalComplete && activeGoal) {
+        router.push("/goal-complete");
+      }
+    }, [isGoalComplete]),
   );
 
-  async function loadData() {
+  async function loadName() {
     try {
-      const [storedName, activeGoal, todayReadings] =
-        await Promise.all([
-          SecureStore.getItemAsync("steadii_name"),
-          getActiveGoal(),
-          getTodayReadings(period),
-        ]);
+      const storedName =
+        await SecureStore.getItemAsync("steadii_name");
       if (storedName) setName(storedName);
-
-      // check if goal is complete
-      if (activeGoal) {
-        const goalEndDate = parseISO(activeGoal.endDate);
-        if (isAfter(new Date(), goalEndDate)) {
-          router.push("/goal-complete");
-          return;
-        }
-      }
-
-      setGoal(activeGoal);
-      if (todayReadings.length > 0) {
-        setSavedReading(todayReadings[0]);
-        setSystolic(todayReadings[0].systolic);
-        setDiastolic(todayReadings[0].diastolic);
-        setBpm(todayReadings[0].bpm);
-      }
     } catch (error) {
       console.error(error);
     }
-  }
-
-  async function handleRefresh() {
-    setRefreshing(true);
-    await loadData();
-    setRefreshing(false);
   }
 
   async function handleSave() {
-    setSaving(true);
-    try {
-      await insertReading(systolic, diastolic, bpm, period);
-      await loadData();
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setSaving(false);
-    }
+    await saveReading(systolic, diastolic, bpm, period);
+  }
+
+  async function handleRefresh() {
+    await Promise.all([refreshReadings(), refreshGoal()]);
   }
 
   return (
@@ -104,7 +79,7 @@ export default function Home() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
+            refreshing={false}
             onRefresh={handleRefresh}
             tintColor={colors.accentPrimary}
           />
@@ -134,7 +109,7 @@ export default function Home() {
         </View>
 
         {/* Goal Banner */}
-        {goal && <GoalBanner goal={goal} />}
+        {activeGoal && <GoalBanner goal={activeGoal} />}
 
         {/* AM/PM Toggle */}
         <View style={styles.toggleRow}>
@@ -147,13 +122,14 @@ export default function Home() {
           </Typography>
           <View style={styles.toggle}>
             {(["AM", "PM"] as const).map((p) => (
-              <View
+              <TouchableOpacity
                 key={p}
                 style={[
                   styles.toggleItem,
                   period === p && styles.toggleItemActive,
                 ]}
-                onTouchEnd={() => setPeriod(p)}
+                onPress={() => setPeriod(p)}
+                activeOpacity={0.8}
               >
                 <Typography
                   variant="tiny"
@@ -166,7 +142,7 @@ export default function Home() {
                 >
                   {p}
                 </Typography>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
@@ -206,14 +182,9 @@ export default function Home() {
 
         {/* Save Button */}
         <Button
-          label={savedReading ? "Update reading" : "Save reading"}
+          label="Save reading"
           onPress={handleSave}
           loading={saving}
-        />
-        <Button
-          label="[DEV] Goal complete"
-          onPress={() => router.push("/goal-complete")}
-          variant="ghost"
         />
 
         {/* Tip of the Day */}
@@ -245,10 +216,9 @@ type GoalBannerProps = {
 };
 
 function GoalBanner({ goal }: GoalBannerProps) {
-  const progress = calculateGoalProgress(
-    goal.startDate,
-    goal.endDate,
-  );
+  const { progress } = useGoal();
+
+  if (!progress) return null;
 
   return (
     <Card style={styles.goalCard}>
@@ -288,7 +258,7 @@ function GoalBanner({ goal }: GoalBannerProps) {
 
       <View style={styles.goalFooter}>
         <Typography variant="tiny" color={colors.textTertiary}>
-          Started {format(new Date(goal.startDate), "MMM d")}
+          Started {format(parseISO(goal.startDate), "MMM d")}
         </Typography>
         <Typography variant="tiny" color={colors.textTertiary}>
           {progress.percentComplete}% · {progress.daysLeft} days left

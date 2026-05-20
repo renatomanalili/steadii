@@ -1,48 +1,20 @@
-import { useState, useCallback } from "react";
 import {
   View,
   FlatList,
   StyleSheet,
   RefreshControl,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
 import { WeekGroup } from "../../components/history/WeekGroup";
-import { getAllReadings } from "../../db/readings";
-import { groupReadingsByWeek } from "../../utils/dateHelpers";
-import { BPReading } from "../../types";
+import { useReadings } from "../../hooks/useReadings";
 import { colors, spacing } from "../../constants/theme";
 
 export default function History() {
-  const [readings, setReadings] = useState<BPReading[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
+  const { readings, grouped, weekKeys, loading, refresh } =
+    useReadings();
 
-  useFocusEffect(
-    useCallback(() => {
-      loadReadings();
-    }, []),
-  );
-
-  async function loadReadings() {
-    try {
-      const all = await getAllReadings();
-      setReadings(all);
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  async function handleRefresh() {
-    setRefreshing(true);
-    await loadReadings();
-    setRefreshing(false);
-  }
-
-  const grouped = groupReadingsByWeek(readings);
-  const weekKeys = Object.keys(grouped);
-
-  if (readings.length === 0) {
+  if (!loading && readings.length === 0) {
     return (
       <ScreenWrapper>
         <View style={styles.empty}>
@@ -71,8 +43,8 @@ export default function History() {
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
+            refreshing={loading}
+            onRefresh={refresh}
             tintColor={colors.accentPrimary}
           />
         }

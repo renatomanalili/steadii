@@ -20,17 +20,14 @@ import {
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
 import { Card } from "../../components/ui/Card";
-import { getActiveGoal, getAllGoals } from "../../db/goals";
-import { calculateGoalProgress } from "../../utils/dateHelpers";
-import { Goal } from "../../types";
+import { useGoal } from "../../hooks/useGoal";
 import { colors, spacing, radius } from "../../constants/theme";
 
 export default function Settings() {
   const [name, setName] = useState("");
-  const [activeGoal, setActiveGoal] = useState<Goal | null>(null);
-  const [pastGoals, setPastGoals] = useState<Goal[]>([]);
   const [notificationsEnabled, setNotificationsEnabled] =
     useState(false);
+  const { activeGoal, pastGoals, progress } = useGoal();
 
   useFocusEffect(
     useCallback(() => {
@@ -40,16 +37,11 @@ export default function Settings() {
 
   async function loadData() {
     try {
-      const [storedName, goal, allGoals, reminderTime] =
-        await Promise.all([
-          SecureStore.getItemAsync("steadii_name"),
-          getActiveGoal(),
-          getAllGoals(),
-          AsyncStorage.getItem("@steadii/reminder_time"),
-        ]);
+      const [storedName, reminderTime] = await Promise.all([
+        SecureStore.getItemAsync("steadii_name"),
+        AsyncStorage.getItem("@steadii/reminder_time"),
+      ]);
       if (storedName) setName(storedName);
-      setActiveGoal(goal);
-      setPastGoals(allGoals.filter((g) => !g.isActive));
       setNotificationsEnabled(!!reminderTime);
     } catch (error) {
       console.error(error);
@@ -120,19 +112,15 @@ export default function Settings() {
                     <Typography variant="small">
                       {activeGoal.label}
                     </Typography>
-                    <Typography
-                      variant="tiny"
-                      color={colors.accentPrimary}
-                    >
-                      Day{" "}
-                      {
-                        calculateGoalProgress(
-                          activeGoal.startDate,
-                          activeGoal.endDate,
-                        ).daysPassed
-                      }{" "}
-                      of {activeGoal.durationDays}
-                    </Typography>
+                    {progress && (
+                      <Typography
+                        variant="tiny"
+                        color={colors.accentPrimary}
+                      >
+                        Day {progress.daysPassed} of{" "}
+                        {activeGoal.durationDays}
+                      </Typography>
+                    )}
                   </View>
                 </View>
                 <ChevronRight size={16} color={colors.textTertiary} />
