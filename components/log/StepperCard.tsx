@@ -1,8 +1,15 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+  withSpring,
+} from "react-native-reanimated";
 import { Minus, Plus } from "lucide-react-native";
 import { Typography } from "../ui/Typography";
-import { colors, radius, spacing } from "../../constants/theme";
+import { colors, radius, spacing, fonts } from "../../constants/theme";
 
 type Props = {
   label: string;
@@ -23,6 +30,18 @@ export function StepperCard({
 }: Props) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const ticksRef = useRef(0);
+
+  const scale = useSharedValue(1);
+  const animatedValueStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  useEffect(() => {
+    scale.value = withSequence(
+      withTiming(1.14, { duration: 70 }),
+      withSpring(1, { stiffness: 300, damping: 15 }),
+    );
+  }, [value]);
 
   function startRepeat(action: () => void) {
     ticksRef.current = 0;
@@ -63,9 +82,11 @@ export function StepperCard({
       </TouchableOpacity>
 
       <View style={styles.valueContainer}>
-        <Typography variant="hero" style={styles.value}>
-          {value}
-        </Typography>
+        <Animated.View style={animatedValueStyle}>
+          <Typography variant="hero" style={styles.value}>
+            {value}
+          </Typography>
+        </Animated.View>
         <Typography variant="tiny" color={colors.textSecondary} uppercase>
           {label}
         </Typography>
@@ -116,7 +137,7 @@ const styles = StyleSheet.create({
   },
   value: {
     fontSize: 72,
-    fontWeight: "300",
+    fontFamily: fonts.light,
     color: colors.textPrimary,
     lineHeight: 80,
   },

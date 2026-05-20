@@ -2,7 +2,6 @@ import { useState } from "react";
 import { View, TextInput, Switch, StyleSheet } from "react-native";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
@@ -20,7 +19,7 @@ export default function SetupScreen() {
 
     setLoading(true);
     try {
-      await SecureStore.setItemAsync("steadii_name", name.trim());
+      await AsyncStorage.setItem("steadii_name", name.trim());
       await AsyncStorage.setItem(
         "@steadii/reminder_time",
         reminderEnabled ? reminderTime : "",

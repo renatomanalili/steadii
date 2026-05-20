@@ -7,8 +7,8 @@ import {
   Alert,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import * as SecureStore from "expo-secure-store";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { clearDatabase } from "../../db/client";
 import {
   User,
   Target,
@@ -50,7 +50,7 @@ export default function Settings() {
 
   async function loadData() {
     try {
-      const storedName = await SecureStore.getItemAsync("steadii_name");
+      const storedName = await AsyncStorage.getItem("steadii_name");
       if (storedName) setName(storedName);
     } catch (error) {
       console.error(error);
@@ -67,8 +67,10 @@ export default function Settings() {
           text: "Reset",
           style: "destructive",
           onPress: async () => {
-            await AsyncStorage.clear();
-            await SecureStore.deleteItemAsync("steadii_name");
+            await Promise.all([
+              AsyncStorage.clear(),
+              clearDatabase(),
+            ]);
             router.replace("/onboarding/welcome");
           },
         },

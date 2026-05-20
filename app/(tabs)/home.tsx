@@ -7,9 +7,9 @@ import {
   TouchableOpacity,
   Alert,
 } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { router, useFocusEffect } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import * as Notifications from "expo-notifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { format } from "date-fns";
 import { Lightbulb } from "lucide-react-native";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
@@ -23,7 +23,7 @@ import { getTipOfTheDay } from "../../constants/tips";
 import { useReadings } from "../../hooks/useReadings";
 import { useGoal } from "../../hooks/useGoal";
 import { GoalBanner } from "../../components/home/GoalBanner";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 export default function Home() {
   const [name, setName] = useState("");
@@ -58,8 +58,7 @@ export default function Home() {
 
   async function loadName() {
     try {
-      const storedName =
-        await SecureStore.getItemAsync("steadii_name");
+      const storedName = await AsyncStorage.getItem("steadii_name");
       if (storedName) setName(storedName);
     } catch (error) {
       console.error(error);
@@ -72,29 +71,6 @@ export default function Home() {
 
   async function handleRefresh() {
     await Promise.all([refreshReadings(), refreshGoal()]);
-  }
-
-  async function handleTestNotification() {
-    const { status } = await Notifications.requestPermissionsAsync();
-    if (status !== "granted") {
-      Alert.alert(
-        "Permission required",
-        "Allow notifications in your device settings, then try again.",
-        [{ text: "OK" }],
-      );
-      return;
-    }
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title: "Morning check-in",
-        body: "Time to log your morning blood pressure reading.",
-      },
-      trigger: {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: 5,
-      },
-    });
-    Alert.alert("Scheduled", "Background the app — notification fires in 5 seconds.");
   }
 
   return (
@@ -112,69 +88,92 @@ export default function Home() {
         }
       >
         {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.dot} />
-            <Typography variant="label" uppercase>
-              Steadii
+        <Animated.View
+          entering={FadeInDown.delay(0).duration(500).springify()}
+        >
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <View style={styles.dot} />
+              <Typography variant="label" uppercase>
+                Steadii
+              </Typography>
+            </View>
+            <Typography variant="tiny" color={colors.textTertiary}>
+              {format(new Date(), "EEE, d MMM yyyy")}
             </Typography>
           </View>
-          <Typography variant="tiny" color={colors.textTertiary}>
-            {format(new Date(), "EEE, d MMM yyyy")}
-          </Typography>
-        </View>
+        </Animated.View>
 
         {/* Greeting */}
-        <View style={styles.greeting}>
-          <Typography variant="title">
-            {name ? `Hey, ${name.split(" ")[0]} 👋` : "Hey there 👋"}
-          </Typography>
-          <Typography variant="body" color={colors.textSecondary}>
-            How are you feeling today?
-          </Typography>
-        </View>
+        <Animated.View
+          entering={FadeInDown.delay(80).duration(500).springify()}
+        >
+          <View style={styles.greeting}>
+            <Typography variant="title">
+              {name
+                ? `Hey, ${name.split(" ")[0]} 👋`
+                : "Hey there 👋"}
+            </Typography>
+            <Typography variant="body" color={colors.textSecondary}>
+              How are you feeling today?
+            </Typography>
+          </View>
+        </Animated.View>
 
         {/* Goal Banner */}
-        {activeGoal && <GoalBanner goal={activeGoal} readings={readings} />}
+        {activeGoal && (
+          <Animated.View
+            entering={FadeInDown.delay(160).duration(500).springify()}
+          >
+            <GoalBanner goal={activeGoal} readings={readings} />
+          </Animated.View>
+        )}
 
         {/* AM/PM Toggle */}
-        <View style={styles.toggleRow}>
-          <Typography
-            variant="tiny"
-            color={colors.textTertiary}
-            uppercase
-          >
-            Log Today
-          </Typography>
-          <View style={styles.toggle}>
-            {(["AM", "PM"] as const).map((p) => (
-              <TouchableOpacity
-                key={p}
-                style={[
-                  styles.toggleItem,
-                  period === p && styles.toggleItemActive,
-                ]}
-                onPress={() => setPeriod(p)}
-                activeOpacity={0.8}
-              >
-                <Typography
-                  variant="tiny"
-                  color={
-                    period === p
-                      ? colors.textOnAccent
-                      : colors.textSecondary
-                  }
-                  style={styles.toggleLabel}
+        <Animated.View
+          entering={FadeInDown.delay(260).duration(500).springify()}
+        >
+          <View style={styles.toggleRow}>
+            <Typography
+              variant="tiny"
+              color={colors.textTertiary}
+              uppercase
+            >
+              Log Today
+            </Typography>
+            <View style={styles.toggle}>
+              {(["AM", "PM"] as const).map((p) => (
+                <TouchableOpacity
+                  key={p}
+                  style={[
+                    styles.toggleItem,
+                    period === p && styles.toggleItemActive,
+                  ]}
+                  onPress={() => setPeriod(p)}
+                  activeOpacity={0.8}
                 >
-                  {p}
-                </Typography>
-              </TouchableOpacity>
-            ))}
+                  <Typography
+                    variant="tiny"
+                    color={
+                      period === p
+                        ? colors.textOnAccent
+                        : colors.textSecondary
+                    }
+                    style={styles.toggleLabel}
+                  >
+                    {p}
+                  </Typography>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Steppers */}
-        <View style={styles.steppers}>
+        <Animated.View
+          entering={FadeInDown.delay(310).duration(500).springify()}
+          style={styles.steppers}
+        >
           <StepperCard
             label="SYS"
             value={systolic}
@@ -195,46 +194,56 @@ export default function Home() {
               setDiastolic((v) => Math.max(v - 1, 40))
             }
           />
-        </View>
+        </Animated.View>
 
         {/* Classification Badge */}
-        <ClassificationBadge
-          systolic={systolic}
-          diastolic={diastolic}
-        />
+        <Animated.View
+          entering={FadeInDown.delay(360).duration(500).springify()}
+        >
+          <ClassificationBadge
+            systolic={systolic}
+            diastolic={diastolic}
+          />
+        </Animated.View>
 
         {/* BPM Input */}
-        <BpmInput value={bpm} onChange={setBpm} />
+        <Animated.View
+          entering={FadeInDown.delay(400).duration(500).springify()}
+        >
+          <BpmInput value={bpm} onChange={setBpm} />
+        </Animated.View>
 
         {/* Save Button */}
-        <Button
-          label="Save reading"
-          onPress={handleSave}
-          loading={saving}
-        />
+        <Animated.View
+          entering={FadeInDown.delay(440).duration(500).springify()}
+        >
+          <Button
+            label="Save reading"
+            onPress={handleSave}
+            loading={saving}
+          />
+        </Animated.View>
 
         {/* Tip of the Day */}
-        <Card style={styles.tipCard}>
-          <View style={styles.tipHeader}>
-            <Lightbulb size={14} color={colors.accentPrimary} />
-            <Typography
-              variant="tiny"
-              color={colors.accentPrimary}
-              uppercase
-            >
-              Tip of the day
+        <Animated.View
+          entering={FadeInDown.delay(520).duration(500).springify()}
+        >
+          <Card style={styles.tipCard}>
+            <View style={styles.tipHeader}>
+              <Lightbulb size={14} color={colors.accentPrimary} />
+              <Typography
+                variant="tiny"
+                color={colors.accentPrimary}
+                uppercase
+              >
+                Tip of the day
+              </Typography>
+            </View>
+            <Typography variant="small" color={colors.textSecondary}>
+              {tip.body}
             </Typography>
-          </View>
-          <Typography variant="small" color={colors.textSecondary}>
-            {tip.body}
-          </Typography>
-        </Card>
-
-        {/* DEV: test notification — remove before release */}
-        <Button
-          label="Test notification (5s)"
-          onPress={handleTestNotification}
-        />
+          </Card>
+        </Animated.View>
 
         {/* Bottom padding for floating tab bar */}
         <View style={styles.bottomPadding} />
@@ -242,7 +251,6 @@ export default function Home() {
     </ScreenWrapper>
   );
 }
-
 
 const styles = StyleSheet.create({
   scroll: {
@@ -295,7 +303,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentPrimary,
   },
   toggleLabel: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   steppers: {
     flexDirection: "row",
@@ -312,7 +320,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
   },
-bottomPadding: {
+  bottomPadding: {
     height: 100,
   },
 });

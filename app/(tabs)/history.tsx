@@ -15,7 +15,7 @@ import { BPChart } from "../../components/history/BPChart";
 import { BPStats } from "../../components/history/BPStats";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { useReadings } from "../../hooks/useReadings";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 type ViewMode = "list" | "graph";
 
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentPrimary,
   },
   toggleLabel: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   separator: {
     height: spacing.lg,

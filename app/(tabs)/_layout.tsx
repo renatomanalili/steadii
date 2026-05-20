@@ -2,7 +2,7 @@ import { Tabs } from "expo-router";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Home, Clock, Settings } from "lucide-react-native";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 import { Typography } from "../../components/ui/Typography";
 
 // Uncomment after: sudo chown -R $(whoami) node_modules/packages && npm install expo-blur --legacy-peer-deps
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentPrimary,
   },
   label: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     letterSpacing: 0.3,
   },
 });

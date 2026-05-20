@@ -1,7 +1,7 @@
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Check } from "lucide-react-native";
 import { Typography } from "../ui/Typography";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 type Props = {
   value: number | null;
@@ -158,6 +158,6 @@ const styles = StyleSheet.create({
     borderColor: colors.borderSubtle,
   },
   digitLabel: {
-    fontWeight: "400",
+    fontFamily: fonts.regular,
   },
 });

@@ -1,4 +1,5 @@
 import { View, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import Animated, { FadeInUp } from "react-native-reanimated";
 import { Typography } from "../ui/Typography";
 import { getBPClassification } from "../../utils/bpClassify";
 import {
@@ -6,7 +7,7 @@ import {
   formatReadingTime,
 } from "../../utils/dateHelpers";
 import { BPReading } from "../../types";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 type Props = {
   reading: BPReading;
@@ -36,6 +37,7 @@ export function ReadingRow({ reading, onDelete }: Props) {
   }
 
   return (
+    <Animated.View entering={FadeInUp.duration(300)}>
     <TouchableOpacity
       style={styles.container}
       onLongPress={handleLongPress}
@@ -87,6 +89,7 @@ export function ReadingRow({ reading, onDelete }: Props) {
         </View>
       </View>
     </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -131,7 +134,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   reading: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   meta: {
     flexDirection: "row",

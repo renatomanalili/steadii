@@ -1,5 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import { format, parseISO } from "date-fns";
 import { CalendarDays } from "lucide-react-native";
 import { Card } from "../ui/Card";
@@ -7,7 +13,7 @@ import { Typography } from "../ui/Typography";
 import { GoalCalendar } from "./GoalCalendar";
 import { useGoal } from "../../hooks/useGoal";
 import { BPReading, Goal } from "../../types";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 type Props = {
   goal: Goal;
@@ -17,6 +23,19 @@ type Props = {
 export function GoalBanner({ goal, readings }: Props) {
   const { progress } = useGoal();
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [trackWidth, setTrackWidth] = useState(0);
+  const fillWidth = useSharedValue(0);
+
+  useEffect(() => {
+    if (trackWidth > 0 && progress) {
+      fillWidth.value = withTiming(
+        (progress.percentComplete / 100) * trackWidth,
+        { duration: 900, easing: Easing.out(Easing.cubic) },
+      );
+    }
+  }, [progress?.percentComplete, trackWidth]);
+
+  const fillStyle = useAnimatedStyle(() => ({ width: fillWidth.value }));
 
   const loggedDays = useMemo(() => {
     const startStr = goal.startDate.slice(0, 10);
@@ -55,13 +74,11 @@ export function GoalBanner({ goal, readings }: Props) {
             </View>
           </View>
 
-          <View style={styles.progressTrack}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${progress.percentComplete}%` },
-              ]}
-            />
+          <View
+            style={styles.progressTrack}
+            onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+          >
+            <Animated.View style={[styles.progressFill, fillStyle]} />
           </View>
 
           <View style={styles.footer}>
@@ -106,7 +123,7 @@ const styles = StyleSheet.create({
   },
   dayCount: {
     fontSize: 22,
-    fontWeight: "300",
+    fontFamily: fonts.light,
   },
   progressTrack: {
     height: 6,

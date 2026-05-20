@@ -24,7 +24,7 @@ import { EmptyState } from "../ui/EmptyState";
 import { ReadingRow } from "../history/ReadingRow";
 import { getBPClassification } from "../../utils/bpClassify";
 import { BPReading, Goal } from "../../types";
-import { colors, spacing, radius } from "../../constants/theme";
+import { colors, spacing, radius, fonts } from "../../constants/theme";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   dateNum: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
     fontSize: 12,
   },
   countBadge: {
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontSize: 9,
-    fontWeight: "700",
+    fontFamily: fonts.bold,
     color: "#fff",
   },
   legend: {

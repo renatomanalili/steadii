@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { ScreenWrapper } from "../../components/ui/ScreenWrapper";
 import { Typography } from "../../components/ui/Typography";
 import { Button } from "../../components/ui/Button";
-import { colors, spacing } from "../../constants/theme";
+import { colors, spacing, fonts } from "../../constants/theme";
 
 export default function WelcomeScreen() {
   return (
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   appName: {
     fontSize: 42,
-    fontWeight: "300",
+    fontFamily: fonts.light,
     letterSpacing: 2,
   },
   tagline: {

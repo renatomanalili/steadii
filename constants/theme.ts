@@ -25,13 +25,21 @@ export const colors = {
   statusCrisis: "#CC2936",
 } as const;
 
+export const fonts = {
+  light: "DMSans_300Light",
+  regular: "DMSans_400Regular",
+  medium: "DMSans_500Medium",
+  semibold: "DMSans_600SemiBold",
+  bold: "DMSans_700Bold",
+} as const;
+
 export const typography = {
-  hero: { fontSize: 72, fontWeight: "300" as const },
-  title: { fontSize: 22, fontWeight: "600" as const },
-  body: { fontSize: 15, fontWeight: "400" as const },
-  label: { fontSize: 13, fontWeight: "500" as const },
-  small: { fontSize: 12, fontWeight: "400" as const },
-  tiny: { fontSize: 11, fontWeight: "500" as const },
+  hero:  { fontSize: 72, fontFamily: fonts.light },
+  title: { fontSize: 22, fontFamily: fonts.semibold },
+  body:  { fontSize: 15, fontFamily: fonts.regular },
+  label: { fontSize: 13, fontFamily: fonts.medium },
+  small: { fontSize: 12, fontFamily: fonts.regular },
+  tiny:  { fontSize: 11, fontFamily: fonts.medium },
 } as const;
 
 export const spacing = {

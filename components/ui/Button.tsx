@@ -11,6 +11,7 @@ import {
   radius,
   spacing,
   typography,
+  fonts,
 } from "../../constants/theme";
 import { Typography } from "./Typography";
 
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
   primaryLabel: {
     color: colors.textOnAccent,

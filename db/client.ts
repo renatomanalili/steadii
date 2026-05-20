@@ -11,6 +11,14 @@ export function getDatabase(): SQLite.SQLiteDatabase {
   return db;
 }
 
+export async function clearDatabase(): Promise<void> {
+  const database = getDatabase();
+  await database.execAsync(`
+    DELETE FROM readings;
+    DELETE FROM goals;
+  `);
+}
+
 export async function initDatabase(): Promise<void> {
   const database = getDatabase();
 

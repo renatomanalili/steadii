@@ -6,7 +6,7 @@ import {
   Share,
 } from "react-native";
 import { router } from "expo-router";
-import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { format, parseISO } from "date-fns";
@@ -24,7 +24,7 @@ import { getReadingsByDateRange } from "../db/readings";
 import { generateReportData } from "../utils/reportGenerator";
 import { getBPClassification } from "../utils/bpClassify";
 import { Goal, BPReading } from "../types";
-import { colors, spacing, radius } from "../constants/theme";
+import { colors, spacing, radius, fonts } from "../constants/theme";
 
 export default function GoalComplete() {
   const [goal, setGoal] = useState<Goal | null>(null);
@@ -40,7 +40,7 @@ export default function GoalComplete() {
     try {
       const [activeGoal, storedName] = await Promise.all([
         getActiveGoal(),
-        SecureStore.getItemAsync("steadii_name"),
+        AsyncStorage.getItem("steadii_name"),
       ]);
       if (storedName) setName(storedName);
       if (activeGoal) {
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 28,
-    fontWeight: "300",
+    fontFamily: fonts.light,
   },
   statsGrid: {
     flexDirection: "row",
@@ -397,7 +397,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 22,
-    fontWeight: "500",
+    fontFamily: fonts.medium,
   },
   summaryCard: {
     gap: spacing.sm,

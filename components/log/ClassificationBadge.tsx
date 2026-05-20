@@ -1,7 +1,8 @@
 import { View, StyleSheet } from "react-native";
+import Animated, { FadeIn } from "react-native-reanimated";
 import { Typography } from "../ui/Typography";
 import { getBPClassification } from "../../utils/bpClassify";
-import { radius, spacing } from "../../constants/theme";
+import { radius, spacing, fonts } from "../../constants/theme";
 
 type Props = {
   systolic: number;
@@ -12,7 +13,9 @@ export function ClassificationBadge({ systolic, diastolic }: Props) {
   const classification = getBPClassification(systolic, diastolic);
 
   return (
-    <View
+    <Animated.View
+      key={classification.label}
+      entering={FadeIn.duration(350)}
       style={[
         styles.container,
         {
@@ -33,7 +36,7 @@ export function ClassificationBadge({ systolic, diastolic }: Props) {
       >
         {classification.label}
       </Typography>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -55,6 +58,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   label: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 });

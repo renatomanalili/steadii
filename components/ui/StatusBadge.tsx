@@ -1,6 +1,6 @@
 import { View, StyleSheet, ViewStyle } from "react-native";
 import { Typography } from "./Typography";
-import { radius, spacing } from "../../constants/theme";
+import { radius, spacing, fonts } from "../../constants/theme";
 import { getBPClassification } from "../../utils/bpClassify";
 
 type Props = {
@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
   },
   label: {
-    fontWeight: "600",
+    fontFamily: fonts.semibold,
   },
 });
